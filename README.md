@@ -17,7 +17,7 @@ A professional code formatter with modern glassmorphism UI and support for 12+ p
 
 ## 🎯 Live Demo
 
-**Try it now:** [https://indentron-1gw2.vercel.app/](https://indentron-1gw2.vercel.app/)
+**Try it now:** [https://indentron.vercel.app](https://indentron.vercel.app)
 
 ## 🚀 Getting Started
 
