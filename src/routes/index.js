@@ -1,0 +1,17 @@
+const express = require('express');
+const path = require('path');
+const formatRoutes = require('./formatRoutes');
+const healthRoutes = require('./healthRoutes');
+
+const router = express.Router();
+
+// API routes
+router.use('/', formatRoutes);
+router.use('/', healthRoutes);
+
+// Serve main page
+router.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../public', 'index.html'));
+});
+
+module.exports = router;

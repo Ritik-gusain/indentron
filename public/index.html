@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Code Formatter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(-45deg, #0f0f23, #1a1a2e, #16213e, #0f172a);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.6); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink {
+            0%, 50% { border-color: transparent; }
+            51%, 100% { border-color: #667eea; }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% { transform: translateY(0); }
+            40%, 43% { transform: translateY(-10px); }
+            70% { transform: translateY(-5px); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            font-size: 1.8rem;
+            font-weight: 800;
+            text-decoration: none;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-text {
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease infinite;
+            text-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+            filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.3));
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+            animation: logoGlow 2s ease-in-out infinite alternate;
+            position: relative;
+        }
+
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            border-radius: 14px;
+            z-index: -1;
+            opacity: 0.7;
+            animation: logoGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes logoGlow {
+            0% {
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+                transform: scale(1);
+            }
+            100% {
+                box-shadow: 0 0 30px rgba(102, 126, 234, 0.8), 0 0 40px rgba(118, 75, 162, 0.4);
+                transform: scale(1.05);
+            }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: slideIn 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 8s ease infinite, pulse 4s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(255,255,255,0.1);
+            position: relative;
+        }
+
+        .header h1::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            animation: pulse 3s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            animation: slideIn 1s ease-out 0.2s both;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        select, button {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        select {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #3c3c3c;
+            backdrop-filter: blur(10px);
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        select:hover {
+            background: #252526;
+            border-color: #007acc;
+            transform: translateY(-2px);
+        }
+
+        select:focus {
+            background: #252526;
+            border-color: #007acc;
+            box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.3);
+            outline: none;
+        }
+
+        select option {
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button.processing {
+            animation: pulse 1s ease-in-out infinite;
+            background: linear-gradient(135deg, #00b894, #00cec9);
+        }
+
+        button.success {
+            animation: bounce 0.6s ease;
+            background: linear-gradient(135deg, #00b894, #00cec9);
+        }
+
+        button.error {
+            animation: shake 0.5s ease;
+            background: linear-gradient(135deg, #e17055, #d63031);
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(-1px);
+        }
+
+        .editor-section {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+            animation: slideIn 1s ease-out 0.4s both;
+            align-items: center;
+        }
+
+        .format-button-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .format-main-button {
+            padding: 20px 30px;
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            white-space: nowrap;
+        }
+
+        .format-main-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .arrow-icon {
+            font-size: 24px;
+            color: #667eea;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        .editor-box {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .editor-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .editor-header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px 25px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .editor-header i {
+            margin-right: 10px;
+            color: #667eea;
+        }
+
+        .editor-header span:last-child {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            height: 450px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: none;
+            padding: 25px;
+            font-family: 'Consolas', 'Monaco', 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            transition: all 0.3s ease;
+            scrollbar-width: thin;
+            scrollbar-color: #424242 #1e1e1e;
+        }
+
+        textarea::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        textarea::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        textarea::-webkit-scrollbar-thumb {
+            background: #424242;
+            border-radius: 6px;
+        }
+
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: #4f4f4f;
+        }
+
+        textarea:focus {
+            background: #252526;
+            border: 1px solid #007acc;
+            box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.3);
+        }
+
+        textarea::placeholder {
+            color: #6a6a6a;
+            font-style: italic;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+            animation: slideIn 1s ease-out 0.6s both;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            background-size: 200% 100%;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            opacity: 0.8;
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 20px 25px;
+            border-radius: 15px;
+            color: white;
+            font-weight: 600;
+            transform: translateX(120%);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #e17055, #d63031);
+        }
+
+        .notification.info {
+            background: linear-gradient(135deg, #0984e3, #6c5ce7);
+        }
+
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .code-matrix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -2;
+            opacity: 0.03;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            line-height: 1.2;
+            color: #667eea;
+            overflow: hidden;
+        }
+
+        .code-line {
+            position: absolute;
+            white-space: nowrap;
+            animation: codeFlow 20s linear infinite;
+        }
+
+        @keyframes codeFlow {
+            0% { transform: translateY(-100vh); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        .shape {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .shape:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            left: 10%;
+            animation: float 6s ease-in-out infinite, sparkle 4s ease-in-out infinite;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            top: 60%;
+            right: 10%;
+            animation: float 8s ease-in-out infinite, pulse 3s ease-in-out infinite;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            bottom: 20%;
+            left: 20%;
+            animation: float 7s ease-in-out infinite, sparkle 5s ease-in-out infinite;
+            animation-delay: 4s;
+        }
+
+        .sparkles {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        .sparkles:nth-child(1) { top: 10%; left: 15%; animation-delay: 0s; }
+        .sparkles:nth-child(2) { top: 30%; right: 20%; animation-delay: 0.5s; }
+        .sparkles:nth-child(3) { bottom: 25%; left: 30%; animation-delay: 1s; }
+        .sparkles:nth-child(4) { top: 70%; right: 15%; animation-delay: 1.5s; }
+        .sparkles:nth-child(5) { bottom: 40%; right: 40%; animation-delay: 2s; }
+
+        @media (max-width: 768px) {
+            .editor-section {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .format-button-center {
+                order: 2;
+                margin: 20px 0;
+            }
+            
+            .controls {
+                padding: 20px;
+                gap: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .header p {
+                font-size: 1.1rem;
+            }
+
+            textarea {
+                height: 300px;
+                padding: 20px;
+            }
+
+            .stats {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="code-matrix" id="codeMatrix"></div>
+    
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="sparkles"></div>
+        <div class="sparkles"></div>
+        <div class="sparkles"></div>
+        <div class="sparkles"></div>
+        <div class="sparkles"></div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-brand">
+                <div class="logo-icon">
+                    <i class="fas fa-code"></i>
+                </div>
+                <span class="logo-text">Indentron</span>
+            </a>
+            <div class="nav-links">
+                <a href="#"><i class="fas fa-home"></i> Home</a>
+                <a href="/health"><i class="fas fa-heart"></i> Status</a>
+                <a href="https://github.com"><i class="fab fa-github"></i> GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-code"></i> Smart Code Formatter</h1>
+            <p>Transform your code with style and precision</p>
+        </div>
+
+        <div class="controls">
+            <select id="language">
+                <option value="javascript">🟨 JavaScript</option>
+                <option value="typescript">🔷 TypeScript</option>
+                <option value="python">🐍 Python</option>
+                <option value="java">☕ Java</option>
+                <option value="json">📄 JSON</option>
+                <option value="css">🎨 CSS</option>
+                <option value="html">🌐 HTML</option>
+            </select>
+
+            <select id="action">
+                <option value="format">✨ Format</option>
+                <option value="beautify">💎 Beautify</option>
+                <option value="minify">🗜️ Minify</option>
+            </select>
+
+
+
+
+
+            <button onclick="loadExample()">
+                <i class="fas fa-file-code"></i> Load Example
+            </button>
+
+            <button onclick="clearAll()">
+                <i class="fas fa-trash-alt"></i> Clear All
+            </button>
+
+            <button onclick="copyOutput()">
+                <i class="fas fa-copy"></i> Copy Output
+            </button>
+
+            <button onclick="saveCode()">
+                <i class="fas fa-save"></i> Save Code
+            </button>
+        </div>
+
+        <div class="editor-section">
+            <div class="editor-box">
+                <div class="editor-header">
+                    <span><i class="fas fa-edit"></i> Input Code</span>
+                    <span id="inputStats">0 lines</span>
+                </div>
+                <textarea id="inputCode" placeholder="✨ Paste your messy code here and watch the magic happen..."></textarea>
+            </div>
+
+            <div class="format-button-center">
+                <i class="fas fa-arrow-right arrow-icon"></i>
+                <button class="format-main-button" onclick="formatCode()">
+                    <i class="fas fa-magic"></i><br><span id="formatButtonText">Format JavaScript</span>
+                </button>
+                <i class="fas fa-arrow-right arrow-icon"></i>
+            </div>
+
+            <div class="editor-box">
+                <div class="editor-header">
+                    <span><i class="fas fa-code"></i> Formatted Output</span>
+                    <span id="outputStats">0 lines</span>
+                </div>
+                <textarea id="outputCode" readonly placeholder="🎯 Your beautifully formatted code will appear here..."></textarea>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="originalSize">0 B</div>
+                <div class="stat-label">📊 Original Size</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="formattedSize">0 B</div>
+                <div class="stat-label">📈 Formatted Size</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="processingTime">0ms</div>
+                <div class="stat-label">⚡ Processing Time</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="compression">0%</div>
+                <div class="stat-label">🔄 Size Change</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Example code for different languages with multiple examples
+        const examples = {
+            javascript: [
+                `function calculateTotal(items){let total=0;for(let i=0;i<items.length;i++){if(items[i].price>0){total+=items[i].price*items[i].quantity}}return total}`,
+                `const fetchUserData=async(userId)=>{try{const response=await fetch('/api/users/'+userId);const data=await response.json();return data;}catch(error){console.error('Error:',error);return null;}}`,
+                `class ShoppingCart{constructor(){this.items=[];this.total=0;}addItem(item){this.items.push(item);this.updateTotal();}updateTotal(){this.total=this.items.reduce((sum,item)=>sum+item.price*item.quantity,0);}}`
+            ],
+            typescript: [
+                `interface Item{price:number;quantity:number}function calculateTotal(items:Item[]):number{let total=0;for(let i=0;i<items.length;i++){if(items[i].price>0){total+=items[i].price*items[i].quantity}}return total}`,
+                `type User={id:number;name:string;email:string;};const createUser=(userData:Partial<User>):User=>{return{id:Date.now(),name:userData.name||'',email:userData.email||''};}`,
+                `enum Status{PENDING='pending',APPROVED='approved',REJECTED='rejected'}interface Order{id:string;status:Status;items:Item[];}class OrderManager{private orders:Order[]=[];addOrder(order:Order):void{this.orders.push(order);}}`
+            ],
+            python: [
+                `def calculate_total(items):\ntotal=0\nfor item in items:\nif item['price']>0:\ntotal+=item['price']*item['quantity']\nreturn total`,
+                `class User:\ndef __init__(self,name,email):\nself.name=name\nself.email=email\ndef get_info(self):\nreturn f'{self.name} ({self.email})'\ndef update_email(self,new_email):\nself.email=new_email`,
+                `import json\ndef process_data(filename):\ntry:\nwith open(filename,'r') as file:\ndata=json.load(file)\nresult=[]\nfor item in data:\nif item.get('active',False):\nresult.append(item)\nreturn result\nexcept Exception as e:\nprint(f'Error: {e}')\nreturn []`
+            ],
+            java: [
+                `public class Calculator{public static double calculateTotal(Item[] items){double total=0;for(int i=0;i<items.length;i++){if(items[i].getPrice()>0){total+=items[i].getPrice()*items[i].getQuantity();}}return total;}}`,
+                `public class User{private String name;private String email;public User(String name,String email){this.name=name;this.email=email;}public String getName(){return name;}public void setName(String name){this.name=name;}public String getEmail(){return email;}public void setEmail(String email){this.email=email;}}`,
+                `import java.util.*;public class OrderProcessor{private List<Order> orders;public OrderProcessor(){this.orders=new ArrayList<>();}public void addOrder(Order order){orders.add(order);}public List<Order> getActiveOrders(){return orders.stream().filter(Order::isActive).collect(Collectors.toList());}}`
+            ],
+            json: [
+                `{"users":[{"id":1,"name":"John","active":true},{"id":2,"name":"Jane","active":false}],"total":2}`,
+                `{"config":{"database":{"host":"localhost","port":5432,"name":"myapp"},"api":{"version":"v1","timeout":30000,"retries":3},"features":{"authentication":true,"logging":true,"caching":false}}}`,
+                `{"products":[{"id":"p1","name":"Laptop","price":999.99,"specs":{"cpu":"Intel i7","ram":"16GB","storage":"512GB SSD"},"tags":["electronics","computers"]},{"id":"p2","name":"Mouse","price":29.99,"specs":{"type":"wireless","dpi":1600},"tags":["electronics","accessories"]}]}`
+            ],
+            css: [
+                `body{margin:0;padding:0;font-family:Arial,sans-serif}.container{max-width:1200px;margin:0 auto}.btn{background:#007bff;color:white;padding:10px 20px;border:none;border-radius:5px}`,
+                `
+.navbar{background:linear-gradient(135deg,#667eea,#764ba2);padding:1rem 0;box-shadow:0 2px 10px rgba(0,0,0,0.1)}.navbar-brand{color:white;font-size:1.5rem;font-weight:bold;text-decoration:none}.navbar-nav{display:flex;list-style:none;margin:0;padding:0}.nav-item{margin:0 1rem}.nav-link{color:white;text-decoration:none;transition:opacity 0.3s}.nav-link:hover{opacity:0.8}`,
+                `@media(max-width:768px){.container{padding:0 1rem}.grid{grid-template-columns:1fr}.navbar-nav{flex-direction:column;position:absolute;top:100%;left:0;width:100%;background:inherit;display:none}.navbar-nav.active{display:flex}.hamburger{display:block;cursor:pointer}.hamburger span{display:block;width:25px;height:3px;background:white;margin:5px 0;transition:0.3s}}`
+            ],
+            html: [
+                `<!DOCTYPE html><html><head><title>Sample</title></head><body><div class="container"><h1>Welcome</h1><p>This is a sample.</p></div></body></html>`,
+                `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Contact Form</title></head><body><form id="contactForm"><div class="form-group"><label for="name">Name:</label><input type="text" id="name" required></div><div class="form-group"><label for="email">Email:</label><input type="email" id="email" required></div><div class="form-group"><label for="message">Message:</label><textarea id="message" rows="5" required></textarea></div><button type="submit">Send Message</button></form></body></html>`,
+                `<!DOCTYPE html><html><head><title>Dashboard</title><link rel="stylesheet" href="styles.css"></head><body><nav class="navbar"><div class="nav-brand">Dashboard</div><ul class="nav-menu"><li><a href="#home">Home</a></li><li><a href="#analytics">Analytics</a></li><li><a href="#settings">Settings</a></li></ul></nav><main class="main-content"><section class="stats"><div class="stat-card"><h3>Users</h3><p class="stat-number">1,234</p></div><div class="stat-card"><h3>Revenue</h3><p class="stat-number">$12,345</p></div></section></main></body></html>`
+            ]
+        };
+
+        let currentExampleIndex = {};
+
+        // Format code function with cool animations
+        async function formatCode() {
+            const code = document.getElementById('inputCode').value;
+            const language = document.getElementById('language').value;
+            const action = document.getElementById('action').value;
+            const button = event.target;
+
+            if (!code.trim()) {
+                button.classList.add('error');
+                setTimeout(() => button.classList.remove('error'), 500);
+                showNotification('Please enter some code to format', 'error');
+                return;
+            }
+
+            // Add processing animation
+            button.classList.add('processing');
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            const startTime = performance.now();
+
+            try {
+                const response = await fetch('/format', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, language, action })
+                });
+
+                const result = await response.json();
+                const endTime = performance.now();
+
+                if (response.ok) {
+                    // Animate the output appearing
+                    const outputArea = document.getElementById('outputCode');
+                    outputArea.style.opacity = '0';
+                    outputArea.value = result.formatted;
+                    
+                    setTimeout(() => {
+                        outputArea.style.transition = 'opacity 0.5s ease';
+                        outputArea.style.opacity = '1';
+                    }, 100);
+
+                    updateStats(result, endTime - startTime);
+                    
+                    // Success animation
+                    button.classList.remove('processing');
+                    button.classList.add('success');
+                    button.innerHTML = '<i class="fas fa-check"></i> Success!';
+                    
+                    setTimeout(() => {
+                        button.classList.remove('success');
+                        button.innerHTML = '<i class="fas fa-magic"></i> Format Code';
+                    }, 2000);
+                    
+                    showNotification('✨ Code formatted successfully!', 'success');
+                } else {
+                    button.classList.remove('processing');
+                    button.classList.add('error');
+                    button.innerHTML = '<i class="fas fa-times"></i> Error';
+                    
+                    setTimeout(() => {
+                        button.classList.remove('error');
+                        button.innerHTML = '<i class="fas fa-magic"></i> Format Code';
+                    }, 2000);
+                    
+                    showNotification(result.error, 'error');
+                }
+            } catch (error) {
+                button.classList.remove('processing');
+                button.classList.add('error');
+                button.innerHTML = '<i class="fas fa-times"></i> Error';
+                
+                setTimeout(() => {
+                    button.classList.remove('error');
+                    button.innerHTML = '<i class="fas fa-magic"></i> Format Code';
+                }, 2000);
+                
+                showNotification('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        // Load example code with cycling through multiple examples
+        function loadExample() {
+            const language = document.getElementById('language').value;
+            const languageExamples = examples[language];
+            
+            if (!currentExampleIndex[language]) {
+                currentExampleIndex[language] = 0;
+            }
+            
+            const example = languageExamples[currentExampleIndex[language]];
+            document.getElementById('inputCode').value = example;
+            updateInputStats();
+            
+            // Cycle to next example for next click
+            currentExampleIndex[language] = (currentExampleIndex[language] + 1) % languageExamples.length;
+            
+            const exampleNumber = currentExampleIndex[language] === 0 ? languageExamples.length : currentExampleIndex[language];
+            showNotification(`🎯 Loaded ${language} example ${exampleNumber}/${languageExamples.length}`, 'info');
+        }
+
+        // Clear all content
+        function clearAll() {
+            document.getElementById('inputCode').value = '';
+            document.getElementById('outputCode').value = '';
+            resetStats();
+            showNotification('🗑️ Cleared all content', 'info');
+        }
+
+        // Copy output to clipboard
+        async function copyOutput() {
+            const output = document.getElementById('outputCode').value;
+            if (!output.trim()) {
+                showNotification('❌ No output to copy', 'error');
+                return;
+            }
+            
+            try {
+                await navigator.clipboard.writeText(output);
+                showNotification('📋 Output copied to clipboard!', 'success');
+            } catch (err) {
+                showNotification('❌ Failed to copy to clipboard', 'error');
+            }
+        }
+
+
+
+        // Save code to file
+        function saveCode() {
+            const code = document.getElementById('outputCode').value || document.getElementById('inputCode').value;
+            const language = document.getElementById('language').value;
+            
+            if (!code.trim()) {
+                showNotification('❌ No code to save', 'error');
+                return;
+            }
+            
+            const extensions = {
+                javascript: 'js', typescript: 'ts', python: 'py', java: 'java',
+                json: 'json', css: 'css', html: 'html'
+            };
+            
+            const extension = extensions[language] || 'txt';
+            const filename = `formatted_code.${extension}`;
+            
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification(`💾 Code saved as ${filename}`, 'success');
+        }
+
+        // Update statistics with animations
+        function updateStats(result, processingTime) {
+            // Animate stat cards
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        card.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 100);
+            });
+
+            // Animate numbers counting up
+            animateNumber('originalSize', 0, result.originalLength, formatBytes);
+            animateNumber('formattedSize', 0, result.formattedLength, formatBytes);
+            animateNumber('processingTime', 0, Math.round(processingTime), (val) => val + 'ms');
+            
+            const change = ((result.formattedLength - result.originalLength) / result.originalLength * 100).toFixed(1);
+            animateNumber('compression', 0, parseFloat(change), (val) => (val > 0 ? '+' : '') + val.toFixed(1) + '%');
+            
+            updateOutputStats();
+        }
+
+        // Animate number counting
+        function animateNumber(elementId, start, end, formatter) {
+            const element = document.getElementById(elementId);
+            const duration = 1000;
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const current = start + (end - start) * easeOutCubic(progress);
+                
+                element.textContent = formatter ? formatter(current) : current.toFixed(0);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            
+            requestAnimationFrame(update);
+        }
+
+        // Easing function
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
+        }
+
+        // Reset statistics
+        function resetStats() {
+            document.getElementById('originalSize').textContent = '0 B';
+            document.getElementById('formattedSize').textContent = '0 B';
+            document.getElementById('processingTime').textContent = '0ms';
+            document.getElementById('compression').textContent = '0%';
+            document.getElementById('inputStats').textContent = '0 lines';
+            document.getElementById('outputStats').textContent = '0 lines';
+        }
+
+        // Update input stats
+        function updateInputStats() {
+            const code = document.getElementById('inputCode').value;
+            const lines = code.split('\n').length;
+            document.getElementById('inputStats').textContent = lines + ' lines';
+        }
+
+        // Update output stats
+        function updateOutputStats() {
+            const code = document.getElementById('outputCode').value;
+            const lines = code.split('\n').length;
+            document.getElementById('outputStats').textContent = lines + ' lines';
+        }
+
+        // Format bytes
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation' : 'info'}-circle"></i> ${message}`;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 400);
+            }, 3000);
+        }
+
+        // Update format button text
+        function updateFormatButton() {
+            const language = document.getElementById('language').value;
+            const action = document.getElementById('action').value;
+            const languageNames = {
+                javascript: 'JavaScript', typescript: 'TypeScript', python: 'Python',
+                java: 'Java', json: 'JSON', css: 'CSS', html: 'HTML'
+            };
+            const actionNames = {
+                format: 'Format', beautify: 'Beautify', minify: 'Minify'
+            };
+            document.getElementById('formatButtonText').textContent = 
+                `${actionNames[action]} ${languageNames[language]}`;
+        }
+
+        // Event listeners
+        document.getElementById('inputCode').addEventListener('input', updateInputStats);
+        document.getElementById('language').addEventListener('change', function() {
+            updateFormatButton();
+            if (!document.getElementById('inputCode').value.trim()) {
+                loadExample();
+            }
+        });
+        document.getElementById('action').addEventListener('change', updateFormatButton);
+
+        // Code matrix background
+        function createCodeMatrix() {
+            const matrix = document.getElementById('codeMatrix');
+            const codeSnippets = [
+                'function format(code) {',
+                '  return code.trim();',
+                '}',
+                'const result = await fetch();',
+                'if (condition) {',
+                '  console.log("formatted");',
+                'class Formatter {',
+                '  constructor() {}',
+                'def format_code():',
+                '    return formatted',
+                'SELECT * FROM users',
+                'WHERE active = true',
+                '<div class="container">',
+                '  <h1>Title</h1>',
+                '</div>',
+                '.container { margin: 0; }',
+                'body { background: #000; }',
+                '{"name": "formatter"}',
+                'import React from "react"',
+                'export default App;'
+            ];
+
+            for (let i = 0; i < 15; i++) {
+                const line = document.createElement('div');
+                line.className = 'code-line';
+                line.textContent = codeSnippets[Math.floor(Math.random() * codeSnippets.length)];
+                line.style.left = Math.random() * 100 + '%';
+                line.style.animationDelay = Math.random() * 20 + 's';
+                line.style.animationDuration = (15 + Math.random() * 10) + 's';
+                matrix.appendChild(line);
+            }
+        }
+
+        // Initialize with example
+        window.addEventListener('load', function() {
+            loadExample();
+            createCodeMatrix();
+            updateFormatButton();
+        });
+    </script>
+</body>
+</html>
