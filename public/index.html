@@ -73,6 +73,14 @@
             20%, 40%, 60%, 80% { transform: translateX(2px); }
         }
 
+        .error-line {
+            position: absolute;
+            background-color: rgba(255, 0, 0, 0.3);
+            width: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
         .navbar {
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(20px);
@@ -683,7 +691,7 @@
             <div class="nav-links">
                 <a href="#"><i class="fas fa-home"></i> Home</a>
                 <a href="/health"><i class="fas fa-heart"></i> Status</a>
-                <a href="https://github.com"><i class="fab fa-github"></i> GitHub</a>
+                <a href="https://github.com/Ritik-gusain/indentron/"><i class="fab fa-github"></i> GitHub</a>
             </div>
         </div>
     </nav>
@@ -719,6 +727,11 @@
                 <i class="fas fa-file-code"></i> Load Example
             </button>
 
+            <button onclick="uploadFile()">
+                <i class="fas fa-upload"></i> Upload File
+            </button>
+            <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(event)">
+
             <button onclick="clearAll()">
                 <i class="fas fa-trash-alt"></i> Clear All
             </button>
@@ -729,6 +742,10 @@
 
             <button onclick="saveCode()">
                 <i class="fas fa-save"></i> Save Code
+            </button>
+
+            <button onclick="shareCode()">
+                <i class="fas fa-share-alt"></i> Share
             </button>
         </div>
 
@@ -822,22 +839,26 @@
         let currentExampleIndex = {};
 
         // Format code function with cool animations
-        async function formatCode() {
+        async function formatCode(isRealtime = false) {
             const code = document.getElementById('inputCode').value;
             const language = document.getElementById('language').value;
             const action = document.getElementById('action').value;
-            const button = event.target;
+            const button = document.querySelector('.format-main-button');
 
             if (!code.trim()) {
-                button.classList.add('error');
-                setTimeout(() => button.classList.remove('error'), 500);
-                showNotification('Please enter some code to format', 'error');
+                if (!isRealtime) {
+                    button.classList.add('error');
+                    setTimeout(() => button.classList.remove('error'), 500);
+                    showNotification('Please enter some code to format', 'error');
+                }
                 return;
             }
 
             // Add processing animation
-            button.classList.add('processing');
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            if (!isRealtime) {
+                button.classList.add('processing');
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            }
 
             const startTime = performance.now();
 
@@ -865,17 +886,37 @@
                     updateStats(result, endTime - startTime);
                     
                     // Success animation
-                    button.classList.remove('processing');
-                    button.classList.add('success');
-                    button.innerHTML = '<i class="fas fa-check"></i> Success!';
-                    
-                    setTimeout(() => {
-                        button.classList.remove('success');
-                        button.innerHTML = '<i class="fas fa-magic"></i> Format Code';
-                    }, 2000);
+                    if (!isRealtime) {
+                        button.classList.remove('processing');
+                        button.classList.add('success');
+                        button.innerHTML = '<i class="fas fa-check"></i> Success!';
+                        
+                        setTimeout(() => {
+                            button.classList.remove('success');
+                            button.innerHTML = '<i class="fas fa-magic"></i> Format Code';
+                        }, 2000);
+                    }
                     
                     showNotification('✨ Code formatted successfully!', 'success');
                 } else {
+                    if (!isRealtime) {
+                        button.classList.remove('processing');
+                        button.classList.add('error');
+                        button.innerHTML = '<i class="fas fa-times"></i> Error';
+                        
+                        setTimeout(() => {
+                            button.classList.remove('error');
+                            button.innerHTML = '<i class="fas fa-magic"></i> Format Code';
+                        }, 2000);
+                    }
+                    
+                    showNotification(result.error, 'error');
+                    if (result.lineNumber) {
+                        highlightErrorLine(result.lineNumber);
+                    }
+                }
+            } catch (error) {
+                if (!isRealtime) {
                     button.classList.remove('processing');
                     button.classList.add('error');
                     button.innerHTML = '<i class="fas fa-times"></i> Error';
@@ -884,18 +925,7 @@
                         button.classList.remove('error');
                         button.innerHTML = '<i class="fas fa-magic"></i> Format Code';
                     }, 2000);
-                    
-                    showNotification(result.error, 'error');
                 }
-            } catch (error) {
-                button.classList.remove('processing');
-                button.classList.add('error');
-                button.innerHTML = '<i class="fas fa-times"></i> Error';
-                
-                setTimeout(() => {
-                    button.classList.remove('error');
-                    button.innerHTML = '<i class="fas fa-magic"></i> Format Code';
-                }, 2000);
                 
                 showNotification('❌ Error: ' + error.message, 'error');
             }
@@ -974,6 +1004,102 @@
             URL.revokeObjectURL(url);
             
             showNotification(`💾 Code saved as ${filename}`, 'success');
+        }
+
+        function uploadFile() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('inputCode').value = e.target.result;
+                    updateInputStats();
+                    showNotification(`📄 Loaded ${file.name}`, 'info');
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Drag and drop
+        const inputArea = document.getElementById('inputCode');
+
+        inputArea.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            inputArea.style.borderColor = '#667eea';
+        });
+
+        inputArea.addEventListener('dragleave', () => {
+            inputArea.style.borderColor = '#3c3c3c';
+        });
+
+        inputArea.addEventListener('drop', (event) => {
+            event.preventDefault();
+            inputArea.style.borderColor = '#3c3c3c';
+            const file = event.dataTransfer.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('inputCode').value = e.target.result;
+                    updateInputStats();
+                    showNotification(`📄 Loaded ${file.name}`, 'info');
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        async function shareCode() {
+            const code = document.getElementById('outputCode').value;
+            if (!code.trim()) {
+                showNotification('❌ No code to share', 'error');
+                return;
+            }
+
+            const language = document.getElementById('language').value;
+
+            try {
+                const response = await fetch('/share', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, language })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    const shareUrl = `${window.location.origin}/share/${result.id}`;
+                    navigator.clipboard.writeText(shareUrl);
+                    showNotification(`📋 Sharable link copied to clipboard!`, 'success');
+                } else {
+                    showNotification(result.error, 'error');
+                }
+            } catch (error) {
+                showNotification('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function loadSharedSnippet() {
+            const path = window.location.pathname;
+            const match = path.match(/\/share\/([a-zA-Z0-9]+)/);
+            if (match) {
+                const id = match[1];
+                try {
+                    const response = await fetch(`/share/${id}`);
+                    const result = await response.json();
+                    if (response.ok) {
+                        document.getElementById('inputCode').value = result.code;
+                        document.getElementById('language').value = result.language;
+                        updateInputStats();
+                        updateFormatButton();
+                        showNotification('📋 Loaded shared snippet!', 'info');
+                    } else {
+                        showNotification(result.error, 'error');
+                    }
+                } catch (error) {
+                    showNotification('❌ Error: ' + error.message, 'error');
+                }
+            }
         }
 
         // Update statistics with animations
@@ -1059,6 +1185,24 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
         }
 
+        function highlightErrorLine(lineNumber) {
+            const inputCode = document.getElementById('inputCode');
+            const lines = inputCode.value.split('\n');
+            const line = lines[lineNumber - 1];
+            if (line) {
+                const errorHighlight = document.createElement('div');
+                errorHighlight.className = 'error-line';
+                const lineHeight = parseFloat(getComputedStyle(inputCode).lineHeight);
+                errorHighlight.style.top = `${(lineNumber - 1) * lineHeight}px`;
+                errorHighlight.style.height = `${lineHeight}px`;
+                inputCode.parentElement.appendChild(errorHighlight);
+
+                setTimeout(() => {
+                    errorHighlight.remove();
+                }, 3000);
+            }
+        }
+
         // Show notification
         function showNotification(message, type) {
             const notification = document.createElement('div');
@@ -1089,8 +1233,25 @@
                 `${actionNames[action]} ${languageNames[language]}`;
         }
 
+        // Debounce function
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
+        // Real-time formatting
+        const debouncedFormatCode = debounce(formatCode, 500);
+        document.getElementById('inputCode').addEventListener('input', () => {
+            updateInputStats();
+            // We don't want to show the button animation for real-time formatting
+            debouncedFormatCode(true);
+        });
+
         // Event listeners
-        document.getElementById('inputCode').addEventListener('input', updateInputStats);
         document.getElementById('language').addEventListener('change', function() {
             updateFormatButton();
             if (!document.getElementById('inputCode').value.trim()) {
@@ -1138,6 +1299,7 @@
 
         // Initialize with example
         window.addEventListener('load', function() {
+            loadSharedSnippet();
             loadExample();
             createCodeMatrix();
             updateFormatButton();

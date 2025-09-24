@@ -15,7 +15,7 @@ const validateFormatRequest = (req, res, next) => {
     return res.status(400).json({ error: `Unsupported language: ${language}` });
   }
 
-  if (action && !['format', 'beautify', 'minify'].includes(action.toLowerCase())) {
+  if (action && !['format'].includes(action.toLowerCase())) {
     return res.status(400).json({ error: `Unsupported action: ${action}` });
   }
 

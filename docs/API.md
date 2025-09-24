@@ -34,7 +34,7 @@ Get supported languages and actions.
 ```json
 {
   "supported": ["javascript", "typescript", "python", "java", "cpp", "php", "sql", "json", "css", "html", "xml", "yaml"],
-  "actions": ["format", "beautify", "minify"],
+  "actions": ["format"],
   "maxCodeLength": 100000
 }
 ```
@@ -68,7 +68,6 @@ Get formatting analytics.
   "actionUsage": {
     "format": 100,
     "beautify": 30,
-    "minify": 20
   },
   "averageProcessingTime": 25.5,
   "uptime": 3600,

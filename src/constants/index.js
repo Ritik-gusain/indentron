@@ -1,9 +1,9 @@
 const SUPPORTED_LANGUAGES = [
-  'javascript', 'typescript', 'python', 'java', 
-  'json', 'css', 'html'
+  'javascript', 'typescript', 'tsx', 'typescriptreact', 'python', 'java', 
+  'json', 'css', 'html', 'c', 'cpp', 'csharp'
 ];
 
-const ACTIONS = ['format', 'beautify', 'minify'];
+const ACTIONS = ['format'];
 
 const HTTP_STATUS = {
   OK: 200,

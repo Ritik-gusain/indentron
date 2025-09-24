@@ -9,7 +9,6 @@ A professional code formatter with modern glassmorphism UI and support for 12+ p
 ## Features
 
 - **Multi-language Support**: JavaScript, TypeScript, Python, Java, C, C++, C#, JSON, CSS, HTML
-- **Three Actions**: Format, Beautify, Minify
 - **Real-time Processing**: Instant formatting with live statistics
 - **VS Code Theme**: Dark editor with syntax highlighting
 - **Modern UI**: Glassmorphism design with smooth animations
@@ -60,7 +59,7 @@ npm start
 2. **Choose Action**: 
    - **Format**: Clean up indentation and structure
    - **Beautify**: Add extra spacing for readability
-   - **Minify**: Remove unnecessary whitespace
+
 3. **Paste Code**: Enter your code in the input area
 4. **Click Format**: Process your code instantly
 5. **Copy Result**: Get your formatted code from the output area
