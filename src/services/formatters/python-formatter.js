@@ -50,33 +50,114 @@ const fixDelIfElse = (code) => {
     .replace(/\bdel\s+else\b/gi, 'else')
     .replace(/\bdel\s+elif\b/gi, 'elif');
 };
-try:
-    x = int(input('x:'))
-    y = int(input('y:'))
-    print('res:', sum([i * y if i % 2 == 0 else i - y for i in range(x)]))
+const splitAndFixStatements = (code, config) => {
+  const lines = [];
+  let buffer = '';
+  let inString = false;
+  let stringChar = '';
+  let parenLevel = 0;
+  let bracketLevel = 0;
+  let braceLevel = 0;
 
+  for (let i = 0; i < code.length; i++) {
+    const char = code[i];
+    const prevChar = code[i - 1] || '';
+    const nextChar = code[i + 1] || '';
 
-class a:
+    if ((char === '"' || char === "'") && prevChar !== '\\') {
+      if (!inString) {
+        inString = true;
+        stringChar = char;
+      } else if (char === stringChar) {
+        inString = false;
+        stringChar = '';
+      }
+    }
 
-    def __init__(s, n):
-        s.n = n
-        s.d = {}
+    if (!inString) {
+      if (char === '(') parenLevel++;
+      if (char === ')') parenLevel--;
+      if (char === '[') bracketLevel++;
+      if (char === ']') bracketLevel--;
+      if (char === '{') braceLevel++;
+      if (char === '}') braceLevel--;
 
-    def add(s, k, v):
-        s.d[k]=v if k not in s.d else s.d[k]+v
+      if (char === ':' && parenLevel === 0 && bracketLevel === 0 && braceLevel === 0) {
+        const trimmedBuffer = buffer.trim();
+        const blockStartRegex = /^(def\s+\w+.*|class\s+\w+.*|if\s+.*|for\s+.*|while\s+.*|try|else|elif\s+.*|except.*|finally|with\s+.*)$/;
 
-    def rm(s, k):
-        del s.d[k] if k in s.d else print('nope')
+        if (trimmedBuffer.match(blockStartRegex)) {
+          lines.push(trimmedBuffer + ':');
+          buffer = '';
+          let j = i + 1;
+          let postColon = '';
+          while (j < code.length && code[j] !== '\n') {
+            postColon += code[j];
+            j++;
+          }
+          if (postColon.trim()) {
+            const subParts = postColon.split(';').map(p => p.trim()).filter(Boolean);
+            for (const part of subParts) {
+              lines.push(config.indent + part);
+            }
+          }
+          i = j;
+          continue;
+        }
+      }
 
-    def show(s):
-        print('data:', s.d)
-        o = a('obj')
-        o.add('a', 1)
-        o.add('a', 2)
-        o.rm('b')
-        o.show()
-except:
-    print('fail')
+      if (char === ';' && parenLevel === 0 && bracketLevel === 0 && braceLevel === 0) {
+        const trimmed = buffer.trim();
+        if (trimmed) {
+          const subParts = trimmed.split(';').map(p => p.trim()).filter(Boolean);
+          for (const part of subParts) {
+            lines.push(part);
+          }
+        }
+        buffer = '';
+        continue;
+      }
+
+      if (char === '\n') {
+        if (buffer.trim()) {
+          lines.push(buffer.trim());
+        }
+        buffer = '';
+        continue;
+      }
+    }
+
+    buffer += char;
+  }
+
+  if (buffer.trim()) {
+    const subParts = buffer.split(';').map(p => p.trim()).filter(Boolean);
+    for (const part of subParts) {
+      lines.push(part);
+    }
+  }
+
+  // Second pass: break compound if/else/elif lines with inline statements
+  const finalLines = [];
+  for (let line of lines) {
+    const trimmed = line.trim();
+    const compoundMatch = /^(if|elif|else)\s*:.*;/.exec(trimmed);
+
+    if (compoundMatch) {
+      const [head, ...rest] = trimmed.split(':');
+      finalLines.push(head.trim() + ':');
+      const body = rest.join(':').split(';').map(p => p.trim()).filter(Boolean);
+      for (const stmt of body) {
+        finalLines.push(config.indent + stmt);
+      }
+    } else {
+      finalLines.push(line);
+    }
+  }
+
+  return finalLines.join('\n');
+};
+
 const applyPEP8Spacing = (code) => {
   const lines = code.split('\n');
   
