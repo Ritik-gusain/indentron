@@ -38,16 +38,26 @@ A professional code formatter with modern glassmorphism UI and support for 12+ p
    ```
 
 3. **Set up environment variables**
-   Create a `.env` file in the root directory 
+   Create a `.env` file in the root directory
+   ```env
+   PORT=3000
+   NODE_ENV=development
+   OPENAI_API_KEY="YOUR_API_KEY"
+   ```
+   (ALREADY GIVEN ABOVE)
 
 
-4. **Start development server**
+5. **Start development server**
    ```bash
    cd packages/indentron
    npm run dev
    ```
+   OR
+   ```bash
+   npm start
+   ```
 
-5. **Open your browser**
+6. **Open your browser**
    ```
    http://localhost:3000
    ```
@@ -61,10 +71,7 @@ npm start
 ## How to Use
 
 1. **Select Language**: Choose your programming language from the dropdown
-2. **Choose Action**: 
-   - **Format**: Clean up indentation and structure
-   - **Beautify**: Add extra spacing for readability
-
+2. **Format**: Clean up indentation and structure
 3. **Paste Code**: Enter your code in the input area
 4. **Click Format**: Process your code instantly
 5. **Copy Result**: Get your formatted code from the output area
