@@ -1,5 +1,29 @@
+const splitColonStatements = (code) => {
+    const lines = code.split('\n');
+    const newLines = [];
+    for(const line of lines) {
+        const match = line.match(/^(\s*)(if|for|while|def|class|try|except|finally|with|elif|else)(.*):\s*(\S.*)$/);
+        if (match) {
+            const indent = match[1];
+            const keyword = match[2];
+            const condition = match[3].trim();
+            const statement = match[4].trim();
+            if (statement) {
+                newLines.push(`${indent}${keyword} ${condition}:`);
+                newLines.push(`${indent}    ${statement}`);
+            } else {
+                newLines.push(line);
+            }
+        } else {
+            newLines.push(line);
+        }
+    }
+    return newLines.join('\n');
+}
+
 const formatPython = (code, config = { indent: '    ' }) => {
   code = code.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  code = splitColonStatements(code);
   code = fixCommonTypos(code);
   code = fixMalformedOperators(code);
   code = fixDelIfElse(code);
@@ -50,6 +74,7 @@ const fixDelIfElse = (code) => {
     .replace(/\bdel\s+else\b/gi, 'else')
     .replace(/\bdel\s+elif\b/gi, 'elif');
 };
+
 const splitAndFixStatements = (code, config) => {
   const lines = [];
   let buffer = '';
@@ -82,6 +107,7 @@ const splitAndFixStatements = (code, config) => {
       if (char === '{') braceLevel++;
       if (char === '}') braceLevel--;
 
+      // Handle block headers like if/elif/else/try/except/def/class
       if (char === ':' && parenLevel === 0 && bracketLevel === 0 && braceLevel === 0) {
         const trimmedBuffer = buffer.trim();
         const blockStartRegex = /^(def\s+\w+.*|class\s+\w+.*|if\s+.*|for\s+.*|while\s+.*|try|else|elif\s+.*|except.*|finally|with\s+.*)$/;
@@ -106,6 +132,7 @@ const splitAndFixStatements = (code, config) => {
         }
       }
 
+      // Handle semicolon-based splits
       if (char === ';' && parenLevel === 0 && bracketLevel === 0 && braceLevel === 0) {
         const trimmed = buffer.trim();
         if (trimmed) {
@@ -118,6 +145,7 @@ const splitAndFixStatements = (code, config) => {
         continue;
       }
 
+      // Handle newline
       if (char === '\n') {
         if (buffer.trim()) {
           lines.push(buffer.trim());
@@ -130,6 +158,7 @@ const splitAndFixStatements = (code, config) => {
     buffer += char;
   }
 
+  // Final flush
   if (buffer.trim()) {
     const subParts = buffer.split(';').map(p => p.trim()).filter(Boolean);
     for (const part of subParts) {
@@ -137,13 +166,13 @@ const splitAndFixStatements = (code, config) => {
     }
   }
 
-  // Second pass: break compound if/else/elif lines with inline statements
+  // Second pass: handle inline control blocks like `if: a=1; b=2`
   const finalLines = [];
   for (let line of lines) {
     const trimmed = line.trim();
-    const compoundMatch = /^(if|elif|else)\s*:.*;/.exec(trimmed);
+    const controlMatch = /^(if|elif|else|try|except|finally|with)\s*:/.exec(trimmed);
 
-    if (compoundMatch) {
+    if (controlMatch && trimmed.includes(';')) {
       const [head, ...rest] = trimmed.split(':');
       finalLines.push(head.trim() + ':');
       const body = rest.join(':').split(';').map(p => p.trim()).filter(Boolean);
@@ -213,33 +242,12 @@ const formatStructureAndIndentation = (code, config) => {
   const lines = code.split('\n').filter(line => line.trim());
   const result = [];
   let indentLevel = 0;
-  let tryBlockLevel = -1; // Track the indent level of the try block
+  let tryBlockLevel = -1;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
-
     if (!trimmed) continue;
-
-    if (trimmed.startsWith('#')) {
-      result.push(config.indent.repeat(indentLevel) + trimmed);
-      continue;
-    }
-
-    // Handle try block start
-    if (trimmed.match(/^try:/)) {
-      tryBlockLevel = indentLevel;
-    }
-
-    // Handle dedent for except/finally, resetting to try block level
-    if (trimmed.match(/^(except(\s.*)?:|finally:)/)) {
-      indentLevel = tryBlockLevel !== -1 ? tryBlockLevel : Math.max(0, indentLevel - 1);
-    }
-
-    // Handle other dedent keywords
-    if (trimmed.match(/^(else:|elif\s)/)) {
-      indentLevel = Math.max(0, indentLevel - 1);
-    }
 
     const isClass = trimmed.match(/^class\s+\w+.*:/);
     const isFunction = trimmed.match(/^def\s+\w+.*:/);
@@ -248,14 +256,12 @@ const formatStructureAndIndentation = (code, config) => {
     let isMethod = false;
     if (isFunction) {
       for (let j = result.length - 1; j >= 0; j--) {
-        const prevLine = result[j].trim();
+        const prevLine = result[j]?.trim();
         if (!prevLine) continue;
-
         if (prevLine.match(/^class\s+\w+.*:/)) {
           isMethod = true;
           break;
         }
-
         if (prevLine.match(/^(def\s|import|from)\s/) &&
             result[j].indexOf(config.indent) !== 0) {
           break;
@@ -263,6 +269,44 @@ const formatStructureAndIndentation = (code, config) => {
       }
     }
 
+    // Prevent unreachable code after return
+    if (trimmed.startsWith('return')) {
+      const nextLine = lines[i + 1]?.trim();
+      if (nextLine && !nextLine.match(/^(except|finally)/)) {
+        indentLevel = 0;
+        result.push('');
+      }
+    }
+
+    // Ensure except/finally are not merged with previous line
+    if (trimmed.match(/^(except|finally):/)) {
+      const prev = result[result.length - 1];
+      if (prev && !prev.trim().endsWith(':')) {
+        result.push('');
+      }
+    }
+
+    // Fix method body leakage
+    if (isFunction && !isMethod && indentLevel === 0) {
+      indentLevel = 1;
+    }
+
+    // Handle try block start
+    if (trimmed.match(/^try:/)) {
+      tryBlockLevel = indentLevel;
+    }
+
+    // Dedent for except/finally
+    if (trimmed.match(/^(except(\s.*)?:|finally:)/)) {
+      indentLevel = tryBlockLevel !== -1 ? tryBlockLevel : Math.max(0, indentLevel - 1);
+    }
+
+    // Dedent for else/elif
+    if (trimmed.match(/^(else:|elif\s)/)) {
+      indentLevel = Math.max(0, indentLevel - 1);
+    }
+
+    // Class/function/import handling
     if (isClass || (isFunction && !isMethod)) {
       if (result.length > 0) {
         result.push('');
@@ -296,6 +340,7 @@ const formatStructureAndIndentation = (code, config) => {
     }
   }
 
+  // Clean up extra blank lines
   const cleaned = [];
   for (let i = 0; i < result.length; i++) {
     const line = result[i];
