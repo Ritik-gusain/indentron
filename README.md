@@ -37,12 +37,17 @@ A professional code formatter with modern glassmorphism UI and support for 12+ p
    npm install
    ```
 
-3. **Start development server**
+3. **Set up environment variables**
+   Create a `.env` file in the root directory 
+
+
+4. **Start development server**
    ```bash
+   cd packages/indentron
    npm run dev
    ```
 
-4. **Open your browser**
+5. **Open your browser**
    ```
    http://localhost:3000
    ```
@@ -66,7 +71,7 @@ npm start
 
 ## Supported Languages
 
-- **JavaScript/TypeScript**: Template literal support, proper indentation, string handling
+- **JavaScript/TypeScript**: Template literal support, proper indentation, string handling. Basic support for TypeScript syntax.
 - **Python**: PEP 8 compliant formatting with proper indentation
 - **Java/C/C++/C#**: C-style formatting with brace alignment, comment preservation
 - **JSON**: Pretty printing with proper structure
@@ -97,6 +102,35 @@ GET /languages
 GET /health
 ```
 
+### Get Analytics
+```bash
+GET /analytics
+```
+
+### Share Code
+```bash
+POST /share
+Content-Type: application/json
+
+{
+  "code": "function hello(){console.log('world')}",
+  "language": "javascript"
+}
+```
+
+### Get Shared Code
+```bash
+GET /share/:id
+```
+
+### Upload File
+```bash
+POST /upload
+Content-Type: multipart/form-data
+
+(File attached with key 'codeFile')
+```
+
 See [API Documentation](docs/API.md) for complete details.
 
 ## Project Structure
@@ -111,9 +145,15 @@ Indentron/
 │   └── index.html                  # Frontend with VS Code theme
 ├── src/
 │   ├── controllers/
-│   │   └── FormatController.js     # Request handling logic
+│   │   ├── FormatController.js     # Request handling logic
+│   │   ├── ShareController.js      # Handles sharing logic
+│   │   └── FileUploadController.js # Handles file uploads
 │   ├── services/
 │   │   └── FormatterService.js     # Core formatting algorithms
+│   ├── routes/
+│   │   ├── formatRoutes.js         # Formatting routes
+│   │   ├── shareRoutes.js          # Sharing routes
+│   │   └── fileUploadRoutes.js     # File upload routes
 │   └── utils/
 │       └── logger.js               # Logging utility
 ├── package.json                    # Dependencies and scripts
@@ -155,7 +195,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Ritik Gusain**
 - GitHub: [@Ritik-gusain](https://github.com/Ritik-gusain)
-- LinkedIn: [Connect with me](https://linkedin.com/in/ritik-gusain)
+- LinkedIn: [Connect with me](https://www.linkedin.com/in/ritik-gusain-7640a9334/)
 
 ## 🙏 Acknowledgments
 
